@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1C1C1E">
+  <meta name="description" content="极简俯卧撑训练助手 - 传感器自动计数，离线可用">
+  <title>俯卧撑助手</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="style.css">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234CD964' width='192' height='192' rx='38'/%3E%3Ctext x='96' y='120' font-size='80' text-anchor='middle' fill='%23fff' font-family='Arial'%3E💪%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+  <!-- ========== 首页 ========== -->
+  <div id="view-home" class="view active">
+    <header class="home-header">
+      <h1>俯卧撑助手</h1>
+      <p class="subtitle">极简 · 离线 · 无登录</p>
+    </header>
+
+    <main class="home-main">
+      <div class="today-plan">
+        <h2>今日训练计划</h2>
+        <div class="plan-card">
+          <div class="plan-label">4 组训练</div>
+          <div class="plan-targets" id="plan-targets">
+            <div class="target-item"><span class="dot dot-warm"></span><span>热身</span><strong id="t1">--</strong></div>
+            <div class="target-item"><span class="dot dot-normal"></span><span>常规</span><strong id="t2">--</strong></div>
+            <div class="target-item"><span class="dot dot-max"></span><span>力竭</span><strong id="t3">MAX</strong></div>
+            <div class="target-item"><span class="dot dot-relax"></span><span>放松</span><strong id="t4">--</strong></div>
+          </div>
+        </div>
+        <div class="plan-tip" id="plan-tip">基于您的历史记录自动计算</div>
+      </div>
+
+      <div class="stats-summary">
+        <div class="stat-box">
+          <span class="stat-num" id="stat-best">--</span>
+          <span class="stat-label">历史最高</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-num" id="stat-total">--</span>
+          <span class="stat-label">总训练次数</span>
+        </div>
+      </div>
+    </main>
+
+    <footer class="home-footer">
+      <button class="btn-primary" id="btn-start">开始训练</button>
+      <button class="btn-ghost" id="btn-settings">
+        <span>⚙️</span> 设置
+      </button>
+    </footer>
+  </div>
+
+  <!-- ========== 训练页 ========== -->
+  <div id="view-training" class="view">
+    <div class="training-overlay">
+      <!-- 准备提示 -->
+      <div id="training-prep" class="prep-panel">
+        <p class="prep-icon">📱</p>
+        <p class="prep-text">请将手机放在地面<br>胸部正下方</p>
+        <p class="prep-sub">传感器将自动计数</p>
+        <button class="btn-primary" id="btn-start-sensor">开始训练</button>
+      </div>
+
+      <!-- 倒计时 -->
+      <div id="training-countdown" class="countdown-panel hidden">
+        <p class="countdown-label">准备</p>
+        <p class="countdown-num" id="countdown-num">3</p>
+      </div>
+
+      <!-- 训练中 -->
+      <div id="training-active" class="active-panel hidden">
+        <div class="active-top">
+          <span class="group-badge" id="group-badge">第 1 组 · 热身</span>
+          <span class="group-target" id="group-target">目标 15</span>
+        </div>
+        <div class="active-center">
+          <p class="count-display" id="count-display">0</p>
+          <p class="count-hint">当前次数</p>
+        </div>
+        <div class="active-bottom">
+          <p class="sensor-status" id="sensor-status">🔴 传感器已启动</p>
+          <button class="btn-finish-group" id="btn-finish-group">完成本组</button>
+        </div>
+      </div>
+
+      <!-- 休息中 -->
+      <div id="training-rest" class="rest-panel hidden">
+        <p class="rest-label">休息中</p>
+        <p class="rest-num" id="rest-num">60</p>
+        <p class="rest-unit">秒</p>
+        <p class="rest-next" id="rest-next">下一组：常规 · 目标 25</p>
+        <button class="btn-skip" id="btn-skip-rest">跳过休息</button>
+      </div>
+
+      <!-- 训练完成 -->
+      <div id="training-done" class="done-panel hidden">
+        <p class="done-icon">✅</p>
+        <p class="done-title">训练完成！</p>
+        <div class="done-stats" id="done-stats"></div>
+        <p class="done-ask">是否完成今日目标？</p>
+        <div class="done-buttons">
+          <button class="btn-yes" id="btn-done-yes">是，我做到了</button>
+          <button class="btn-no" id="btn-done-no">还有差距</button>
+        </div>
+      </div>
+
+      <!-- 手动结束力竭组 -->
+      <div id="training-max-confirm" class="max-confirm-panel hidden">
+        <p class="max-confirm-title">力竭组结束？</p>
+        <p class="max-confirm-count">已完成 <strong id="max-confirm-num">0</strong> 次</p>
+        <div class="done-buttons">
+          <button class="btn-yes" id="btn-max-done">结束本组</button>
+          <button class="btn-no" id="btn-max-continue">继续</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-exit" id="btn-exit-training">✕</button>
+  </div>
+
+  <!-- ========== 设置页 ========== -->
+  <div id="view-settings" class="view">
+    <header class="settings-header">
+      <button class="btn-back" id="btn-back-home">←</button>
+      <h2>设置</h2>
+    </header>
+
+    <main class="settings-main">
+      <section class="setting-section">
+        <h3>传感器灵敏度</h3>
+        <div class="sensitivity-options">
+          <button class="sens-btn" data-sens="low">低</button>
+          <button class="sens-btn" data-sens="medium">中</button>
+          <button class="sens-btn" data-sens="high">高</button>
+        </div>
+        <p class="setting-hint">灵敏度越高，越容易识别小幅动作</p>
+      </section>
+
+      <section class="setting-section">
+        <h3>每日提醒</h3>
+        <div class="reminder-row">
+          <label for="reminder-time">提醒时间</label>
+          <input type="time" id="reminder-time" value="20:00">
+        </div>
+        <div class="reminder-row">
+          <label for="reminder-toggle">开启提醒</label>
+          <label class="toggle">
+            <input type="checkbox" id="reminder-toggle">
+            <span class="toggle-track"></span>
+          </label>
+        </div>
+        <p class="setting-hint" id="reminder-status">未开启</p>
+      </section>
+
+      <section class="setting-section">
+        <h3>数据管理</h3>
+        <button class="btn-danger" id="btn-reset-data">重置所有数据</button>
+        <p class="setting-hint">清除历史记录和训练基数</p>
+      </section>
+
+      <section class="setting-section">
+        <h3>关于</h3>
+        <p class="about-text">极简俯卧撑助手</p>
+        <p class="about-text">离线可用 · 无需登录 · 纯本地运行</p>
+        <p class="about-text version">v1.0.0</p>
+      </section>
+    </main>
+  </div>
+
+  <!-- ========== Toast ========== -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
